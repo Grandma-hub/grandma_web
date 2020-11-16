@@ -95,4 +95,4 @@ def update_output(n_clicks, content):  # Displayes the image
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
