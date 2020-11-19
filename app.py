@@ -86,7 +86,7 @@ def update_output(n_clicks, content):  # Displayes the image
     content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)",
                      "", str(content))
     list_of_content = []
-    for post in get_posts('{}'.format(content), pages=20):
+    for post in get_posts('{}'.format(content), pages=10):
         if post["text"] != None:
             list_of_content.append(post["text"])
 
