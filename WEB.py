@@ -113,7 +113,7 @@ def update_output(n_clicks, content):  # Displayes the image
     content = content
 #     re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)",
 #                      "", str(content))
-   
+    print(content)
     # connect to the PostgreSQL database
     conn = psycopg2.connect(**params)
     
