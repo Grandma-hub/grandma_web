@@ -10,6 +10,7 @@ import joblib
 from numpy import mean
 import psycopg2
 from config import config
+import pandas as pd
 
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
