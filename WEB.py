@@ -110,9 +110,9 @@ def predictor(document):
               )
 def update_output(n_clicks, content):  # Displayes the image
     """Displays an inputted image on the page."""
-    content = content
-#     re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)",
-#                      "", str(content))
+    content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)",
+                     "", str(content))
+    
     print(content)
     # connect to the PostgreSQL database
     conn = psycopg2.connect(**params)
