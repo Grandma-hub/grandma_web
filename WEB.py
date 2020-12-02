@@ -79,10 +79,10 @@ app.layout = html.Div(children=[
 
 def insert_db(website, perc):
     """ insert multiple vendors into the vendors table  """
-
+    conn = None
     postgres_insert_query = """ INSERT INTO website_check (website, hate_speech) VALUES (%s,%s)"""
     try:
-        
+        conn = psycopg2.connect(**params)
         # create a new cursor
         cur = conn.cursor()
         record_to_insert = (website, perc)
