@@ -15,6 +15,9 @@ from config import config
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 server = app.server
 
+params = config()
+
+
 logoImage = 'pp.png'
 encoded_image = base64.b64encode(open(logoImage, 'rb').read())
 model = joblib.load("model_hs.sav")
@@ -77,12 +80,8 @@ def insert_db(website, perc):
     """ insert multiple vendors into the vendors table  """
 
     postgres_insert_query = """ INSERT INTO website_check (website, hate_speech) VALUES (%s,%s)"""
-    conn = None
     try:
-        # read database configuration
-        params = config()
-        # connect to the PostgreSQL database
-        conn = psycopg2.connect(**params)
+        
         # create a new cursor
         cur = conn.cursor()
         record_to_insert = (website, perc)
@@ -112,8 +111,14 @@ def update_output(n_clicks, content):  # Displayes the image
     """Displays an inputted image on the page."""
     content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)",
                      "", str(content))
-    cur.execute("""select exists(select 1 from website_check where "website"=()) VALUES (%s)""",(content))
-    exist = cur.fetchone()
+   
+    # connect to the PostgreSQL database
+    conn = psycopg2.connect(**params)
+    
+    df = pd.read_sql_query('select * from website_check',con=conn)
+    exist = content in list(df["website"])
+    
+    
     if not exist:
         list_of_content = []
         for post in get_posts('{}'.format(content), pages=20):
@@ -123,9 +128,6 @@ def update_output(n_clicks, content):  # Displayes the image
         result = predictor(list_of_content)
         insert_db(content, str(result))
     else:
-        params = config()
-        conn = psycopg2.connect(**params)
-        df = pd.read_sql_query('select * from website_check', con=conn)
         result = df.loc[df['website'] == content, 'hate_speech']
         result = result[0]
 
