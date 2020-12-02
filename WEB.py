@@ -127,8 +127,9 @@ def update_output(n_clicks, content):  # Displayes the image
             if post["text"] != None:
                 list_of_content.append(post["text"])
 
-        result = predictor(list_of_content)
-        insert_db(content, str(result))
+        results = predictor(list_of_content)
+        insert_db(content, str(results))
+        result= results
     else:
         result = df.loc[df['website'] == content, 'hate_speech']
         result = result[0]
