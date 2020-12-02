@@ -123,7 +123,7 @@ def update_output(n_clicks, content):  # Displayes the image
     
     if not exist:
         list_of_content = []
-        for post in get_posts('{}'.format(content), pages=20):
+        for post in get_posts('{}'.format(content), pages=2):
             if post["text"] != None:
                 list_of_content.append(post["text"])
 
