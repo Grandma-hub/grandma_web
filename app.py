@@ -8,6 +8,8 @@ import re
 from facebook_scraper import get_posts
 import joblib
 from numpy import mean
+import psycopg2
+from config import config
 
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
@@ -43,7 +45,6 @@ app.layout = html.Div(children=[
                 "margin-right": "auto",
                 "transform": "scale(1.5)",
                 "background": "white",
-                "filter": "progid:DXImageTransform.Microsoft.gradient(startColorstr='#46fcb1',endColorstr='#3ffb6e',GradientType=1)"
             },
             multiple=False
         ),
@@ -72,6 +73,32 @@ app.layout = html.Div(children=[
 ])
 
 
+def insert_db(website, perc):
+    """ insert multiple vendors into the vendors table  """
+
+    postgres_insert_query = """ INSERT INTO website_check (website, hate_speech) VALUES (%s,%s)"""
+    conn = None
+    try:
+        # read database configuration
+        params = config()
+        # connect to the PostgreSQL database
+        conn = psycopg2.connect(**params)
+        # create a new cursor
+        cur = conn.cursor()
+        record_to_insert = (website, perc)
+        cur.execute(postgres_insert_query, record_to_insert)
+        # execute the INSERT statement
+        # commit the changes to the database
+        conn.commit()
+        # close communication with the database
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+
 def predictor(document):
     document_vectorized = vectorizer.transform(document)
     return mean(model.predict(document_vectorized))
@@ -85,14 +112,25 @@ def update_output(n_clicks, content):  # Displayes the image
     """Displays an inputted image on the page."""
     content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)",
                      "", str(content))
-    list_of_content = []
-    for post in get_posts('{}'.format(content), pages=10):
-        if post["text"] != None:
-            list_of_content.append(post["text"])
+    cur.execute("""select exists(select 1 from website_check where "website"=()) VALUES (%s)""",(content))
+    exist = cur.fetchone()
+    if not exist:
+        list_of_content = []
+        for post in get_posts('{}'.format(content), pages=20):
+            if post["text"] != None:
+                list_of_content.append(post["text"])
 
-    result = predictor(list_of_content)
+        result = predictor(list_of_content)
+        insert_db(content, str(result))
+    else:
+        params = config()
+        conn = psycopg2.connect(**params)
+        df = pd.read_sql_query('select * from website_check', con=conn)
+        result = df.loc[df['website'] == content, 'hate_speech']
+        result = result[0]
+
     return "Percentage of hate-speech: {}%".format(result)
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
