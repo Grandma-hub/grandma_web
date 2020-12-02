@@ -132,7 +132,7 @@ def update_output(n_clicks, content):  # Displayes the image
         result= results
     else:
         result = df.loc[df['website'] == content, 'hate_speech']
-        result = result[0]
+      
     conn.close()
     return "Percentage of hate-speech: {}%".format(result)
 
