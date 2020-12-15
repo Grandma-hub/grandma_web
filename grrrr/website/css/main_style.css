@@ -1,14 +1,4 @@
-/*
-Theme Name:     FabTheme
-Version:        1.0
-Description:    Custom CSS
-*/
-/* 
-	All custom ids and classes used for the theme, starts with "fabtheme".
-	For documentation page, it uses "fabthemeDoc".
-*/
-/* TABLE OF CONTENTS */
-/*
+
 	1. body
 		1.1 #fabtheme-body
 	2. headlines
@@ -437,5 +427,3 @@ h1,h2,h3{
 	color: #F3F3F3;
 	border-radius: 0;
 }
-/* END OF DOCUMENTATION */
-/* END OF CUSTOM CSS */
