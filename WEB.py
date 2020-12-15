@@ -129,12 +129,12 @@ def update_output(n_clicks, content):  # Displayes the image
 
         results = predictor(list_of_content)
         insert_db(content, str(results))
-        result= results
+        result= float(results)*100
     else:
         result = float(list(df.loc[df['website'] == content, 'hate_speech'])[0])*100
       
     conn.close()
-    return "Percentage of hate-speech: {}%".format(result)
+    return "Percentage of hate-speech: {}%".format(int(result))
 
 
 if __name__ == '__main__':
