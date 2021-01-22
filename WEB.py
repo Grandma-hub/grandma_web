@@ -110,7 +110,7 @@ def predictor(document):
               )
 def update_output(n_clicks, content):  # Displayes the image
     """Displays an inputted image on the page."""
-    content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)",
+    content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)/",
                      "", str(content))
     
     print(content)
