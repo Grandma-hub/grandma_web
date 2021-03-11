@@ -14,6 +14,7 @@ import pandas as pd
 
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
+app.title = 'Grandma' 
 server = app.server
 
 params = config()
