@@ -20,7 +20,7 @@ server = app.server
 params = config()
 
 
-logoImage = 'pp.png'
+logoImage = 'grandma_icon.png'
 encoded_image = base64.b64encode(open(logoImage, 'rb').read())
 model = joblib.load("model_hs.sav")
 vectorizer = joblib.load("vectorizer.sav")
