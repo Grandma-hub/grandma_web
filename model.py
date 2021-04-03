@@ -23,4 +23,4 @@ accuracy_score = metrics.accuracy_score(predicted, test_y)
 print(str('{:04.2f}'.format(accuracy_score * 100)) + '%')
 
 joblib.dump(vectorizer, r"vectorizer.sav")
-joblib.dump(model, open(r"C:/Users/elina/PycharmProjects/grandma/model_hs.sav", 'wb'))
+joblib.dump(model, open(r"./model_hs.sav", 'wb'))
