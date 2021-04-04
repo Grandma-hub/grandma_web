@@ -5,20 +5,26 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 import base64
 import re
-from facebook_scraper import get_posts
 import joblib
 from numpy import mean
+import pandas as pd
+import requests
 import psycopg2
 from config import config
-import pandas as pd
+from boto.s3.connection import S3Connection
 
-# external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 app.title = 'Grandma' 
 server = app.server
 
-params = config()
+api_key_scrape = S3Connection(os.environ['api_scraper'])
+#api scraper
+endpoint = "https://extractorapi.com/api/v1/extractor"
 
+# external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
+
+params_db = config()
 
 logoImage = 'grandma_icon.png'
 encoded_image = base64.b64encode(open(logoImage, 'rb').read())
@@ -82,7 +88,7 @@ def insert_db(website, perc):
     """ insert multiple vendors into the vendors table  """
     conn = None
     try:
-        conn = psycopg2.connect(**params)
+        conn = psycopg2.connect(**params_db)
         # create a new cursor
         cur = conn.cursor()
         postgres_insert_query = """ INSERT INTO website_check (website, hate_speech) VALUES (%s,%s)"""
@@ -111,33 +117,31 @@ def predictor(document):
               )
 def update_output(n_clicks, content):  # Displayes the image
     """Displays an inputted image on the page."""
-    content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)",
-                     "", str(content))
-    content = re.sub("/",
-                     "", str(content))
-    
-    print(content)
+
+    params = {
+      "apikey": api_key_scrape,
+      "url": content
+    }
+
+
     # connect to the PostgreSQL database
-    conn = psycopg2.connect(**params)
+    conn = psycopg2.connect(**params_db)
     
     df = pd.read_sql_query('select * from website_check',con=conn)
     exist = content in list(df["website"])
     
+    content_text = list(requests.get(endpoint, params=params).json()["text"])
+
+    conn.close()
     
     if not exist:
-        list_of_content = []
-        for post in get_posts('{}'.format(content), pages=15):
-            if post["text"] != None:
-                list_of_content.append(post["text"])
-
-        results = predictor(list_of_content)
+        results = predictor(content_text)
+        results= float(results)*100
         insert_db(content, str(results))
-        result= float(results)*100
     else:
-        result = float(list(df.loc[df['website'] == content, 'hate_speech'])[0])*100
+        results = float(list(df.loc[df['website'] == content, 'hate_speech'])[0])
       
-    conn.close()
-    return "Percentage of hate-speech: {}%".format(int(result))
+    return "Percentage of hate-speech: {}%".format(int(results))
 
 
 if __name__ == '__main__':
