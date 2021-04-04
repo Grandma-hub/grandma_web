@@ -14,11 +14,13 @@ import pandas as pd
 
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
+app.title = 'Grandma' 
 server = app.server
 
 params = config()
 
-logoImage = 'pp.png'
+
+logoImage = 'grandma_icon.png'
 encoded_image = base64.b64encode(open(logoImage, 'rb').read())
 model = joblib.load("model_hs.sav")
 vectorizer = joblib.load("vectorizer.sav")
@@ -79,11 +81,11 @@ app.layout = html.Div(children=[
 def insert_db(website, perc):
     """ insert multiple vendors into the vendors table  """
     conn = None
-    postgres_insert_query = """ INSERT INTO website_check (website, hate_speech) VALUES (%s,%s)"""
     try:
         conn = psycopg2.connect(**params)
         # create a new cursor
         cur = conn.cursor()
+        postgres_insert_query = """ INSERT INTO website_check (website, hate_speech) VALUES (%s,%s)"""
         record_to_insert = (website, perc)
         cur.execute(postgres_insert_query, record_to_insert)
         # execute the INSERT statement
@@ -109,28 +111,33 @@ def predictor(document):
               )
 def update_output(n_clicks, content):  # Displayes the image
     """Displays an inputted image on the page."""
-    content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)", "", str(content))
-
-
+    content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)",
+                     "", str(content))
+    content = re.sub("/",
+                     "", str(content))
+    
+    print(content)
     # connect to the PostgreSQL database
     conn = psycopg2.connect(**params)
-
-    df = pd.read_sql_query('select * from website_check', con=conn)
+    
+    df = pd.read_sql_query('select * from website_check',con=conn)
     exist = content in list(df["website"])
-
+    
+    
     if not exist:
         list_of_content = []
-        for post in get_posts('{}'.format(content), pages=20):
+        for post in get_posts('{}'.format(content), pages=15):
             if post["text"] != None:
                 list_of_content.append(post["text"])
 
-        result = predictor(list_of_content)
-        insert_db(content, str(result))
+        results = predictor(list_of_content)
+        insert_db(content, str(results))
+        result= float(results)*100
     else:
-        result = df.loc[df['website'] == content, 'hate_speech']
-        result = result[0]
-
-    return "Percentage of hate-speech: {}%".format(result)
+        result = float(list(df.loc[df['website'] == content, 'hate_speech'])[0])*100
+      
+    conn.close()
+    return "Percentage of hate-speech: {}%".format(int(result))
 
 
 if __name__ == '__main__':
