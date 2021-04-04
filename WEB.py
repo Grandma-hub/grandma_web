@@ -11,16 +11,18 @@ import pandas as pd
 import requests
 import psycopg2
 from config import config
-from boto.s3.connection import S3Connection
+# from boto.s3.connection import S3Connection
 
-api_key_scrape = S3Connection(os.environ['api_scraper'])
-#api scraper
-endpoint = "https://extractorapi.com/api/v1/extractor"
 
-# external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 app.title = 'Grandma' 
 server = app.server
+
+# api_key_scrape = S3Connection(os.environ['api_scraper'])
+# #api scraper
+# endpoint = "https://extractorapi.com/api/v1/extractor"
+
+# external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
 
 params = config()
 
