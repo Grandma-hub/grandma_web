@@ -131,7 +131,7 @@ def update_output(n_clicks, content):  # Displayes the image
     df = pd.read_sql_query('select * from website_check',con=conn)
     exist = content in list(df["website"])
     
-    content_text = requests.get(endpoint, params=params).json()["text"]
+    content_text = requests.get(endpoint, params=params).json()["text"].split(".")
 
     conn.close()
     
