@@ -7,6 +7,7 @@ import base64
 import re
 import joblib
 from numpy import mean
+import os
 import pandas as pd
 import requests
 import psycopg2
