@@ -5,28 +5,20 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 import base64
 import re
+from facebook_scraper import get_posts
 import joblib
 from numpy import mean
-import pandas as pd
-import requests
 import psycopg2
 from config import config
-from boto.s3.connection import S3Connection
+import pandas as pd
 
-
+# external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
-app.title = 'Grandma' 
 server = app.server
-
-api_key_scrape = S3Connection(os.environ['api_scraper'])
-#api scraper
-endpoint = "https://extractorapi.com/api/v1/extractor"
-
-external_stylesheets = ['https://codepen.io/chriddyp/pen/dZVMbK.css']
 
 params = config()
 
-logoImage = 'grandma_icon.png'
+logoImage = 'pp.png'
 encoded_image = base64.b64encode(open(logoImage, 'rb').read())
 model = joblib.load("model_hs.sav")
 vectorizer = joblib.load("vectorizer.sav")
@@ -87,11 +79,11 @@ app.layout = html.Div(children=[
 def insert_db(website, perc):
     """ insert multiple vendors into the vendors table  """
     conn = None
+    postgres_insert_query = """ INSERT INTO website_check (website, hate_speech) VALUES (%s,%s)"""
     try:
         conn = psycopg2.connect(**params)
         # create a new cursor
         cur = conn.cursor()
-        postgres_insert_query = """ INSERT INTO website_check (website, hate_speech) VALUES (%s,%s)"""
         record_to_insert = (website, perc)
         cur.execute(postgres_insert_query, record_to_insert)
         # execute the INSERT statement
@@ -117,32 +109,28 @@ def predictor(document):
               )
 def update_output(n_clicks, content):  # Displayes the image
     """Displays an inputted image on the page."""
-
-    params = {
-      "apikey": api_key_scrape,
-      "url": content
-    }
+    content = re.sub("(?:https?:\/\/)?(?:www\.)?facebook\.com\/?(?:\/)", "", str(content))
 
 
     # connect to the PostgreSQL database
     conn = psycopg2.connect(**params)
-    
-    df = pd.read_sql_query('select * from website_check',con=conn)
-    exist = content in list(df["website"])
-    
-    content_text = list(requests.get(endpoint, params=params).json()["text"])
 
-    
-    
+    df = pd.read_sql_query('select * from website_check', con=conn)
+    exist = content in list(df["website"])
+
     if not exist:
-        results = predictor(content_text)
-        result= float(results)*100
+        list_of_content = []
+        for post in get_posts('{}'.format(content), pages=20):
+            if post["text"] != None:
+                list_of_content.append(post["text"])
+
+        result = predictor(list_of_content)
         insert_db(content, str(result))
     else:
-        result = float(list(df.loc[df['website'] == content, 'hate_speech'])[0])
-      
-    conn.close()
-    return "Percentage of hate-speech: {}%".format(int(result))
+        result = df.loc[df['website'] == content, 'hate_speech']
+        result = result[0]
+
+    return "Percentage of hate-speech: {}%".format(result)
 
 
 if __name__ == '__main__':
