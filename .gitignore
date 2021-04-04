@@ -3,4 +3,3 @@ venv
 .env
 .DS_Store
 database.ini
-api_data.py
