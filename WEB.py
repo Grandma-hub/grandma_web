@@ -12,14 +12,14 @@ import pandas as pd
 import requests
 import psycopg2
 from config import config
-from boto.s3.connection import S3Connection
+# from boto.s3.connection import S3Connection
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 app.title = 'Grandma' 
 server = app.server
 
-api_key_scrape = S3Connection(os.environ['api_scraper'])
+api_key_scrape = "445b954fb2cf9495145a48b191840a3bcec49c7d"
 #api scraper
 endpoint = "https://extractorapi.com/api/v1/extractor"
 
